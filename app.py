@@ -1,12 +1,20 @@
-# Import necessary libraries
-import tkinter as tk
+#importing required modules
+import tkinter
+import customtkinter
+from PIL import ImageTk,Image
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
-from ttkthemes import ThemedStyle
+from tkinter import messagebox
 
+customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
+customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
+
+
+app = customtkinter.CTk()  #creating cutstom tkinter window
+app.geometry("600x440")
+app.title('Kyphosis Diagnosis')
 
 # Load kyphosis dataset
 kyphosis_data = pd.read_csv('kyphosis.csv')
@@ -31,50 +39,51 @@ X_train, X_test, y_train, y_test = train_test_split(X_res,
 rfc = RandomForestClassifier()
 rfc.fit(X_train, y_train)
 
-# Create GUI
-root = tk.Tk()
-root.title('kyphosis Predictor')
 
-style = ThemedStyle(root)
-style.set_theme('smog')
+img1=ImageTk.PhotoImage(Image.open("images/med.jpg"))
+l1=customtkinter.CTkLabel(master=app,image=img1)
+l1.pack()
 
-print('root : ',type(root))
-age_label = tk.Label(root, text='Enter age:')
-age_label.pack()
+#creating custom frame
+frame=customtkinter.CTkFrame(master=l1, width=320, height=360, corner_radius=15)
+frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
-age_entry = tk.Entry(root)
-age_entry.pack()
+l2=customtkinter.CTkLabel(master=frame, text="Kyphosis Diagnosis",font=('Century Gothic',20))
+l2.place(x=50, y=45)
 
-number_label = tk.Label(root, text='Enter number :')
-number_label.pack()
+entry1=customtkinter.CTkEntry(master=frame, width=220, placeholder_text='Number of months')
+entry1.place(x=50, y=110)
 
-number_entry = tk.Entry(root)
-number_entry.pack()
+entry2=customtkinter.CTkEntry(master=frame, width=220, placeholder_text='Number of vertebrae involved')
+entry2.place(x=50, y=165)
 
-start_label = tk.Label(root, text='Enter start :')
-start_label.pack()
+entry3=customtkinter.CTkEntry(master=frame, width=220, placeholder_text='The first vertebrae operated on')
+entry3.place(x=50, y=220)
 
-start_entry = tk.Entry(root)
-start_entry.pack()
-
-
+# Prediction function
 
 def predict_survival():
-    age = float(age_entry.get())
-    gender = int(number_entry.get())
-    pclass = int(start_entry.get())
-    features = [[gender, pclass, age]]
-    prediction = rfc.predict(features)
-    if prediction[0] == 0:
-        result_label.config(text='The person is predicted to not have kyphosis.')
-    else:
-        result_label.config(text='The person is predicted to have kyphosis.')
+    age = entry1.get()
+    number = entry2.get()
+    start = entry3.get()
+    if age != '' and number != '' and start != '':
+        age = float(entry1.get())
+        number = int(entry2.get())
+        start = int(entry3.get())
+        features = [[age, number, start]]
+        prediction = rfc.predict(features)
+        if prediction[0] == 0:
+            messagebox.showinfo("Prediction", "The person is predicted to not have kyphosis.")
+        elif prediction[0] == 1:
+            messagebox.showinfo("Prediction", "The person is predicted to have kyphosis.")
+    elif age == '' or number == '' or start == '':
+        result_label.configure(text='Please fill in all the fields.')
+#Create custom button
+button1 = customtkinter.CTkButton(master=frame, width=220, text="Predict kyphosis", command=predict_survival, corner_radius=6)
+button1.place(x=50, y=260)
 
-predict_button = tk.Button(root, text='Predict survival', command=predict_survival)
-result_label = tk.Label(root, text='')
-result_label.pack()
-predict_button.pack()
+result_label = customtkinter.CTkLabel(frame, text='Prediction will be shown here.')
+result_label.place(x=50, y=300)
 
 
-
-root.mainloop()
+app.mainloop()
